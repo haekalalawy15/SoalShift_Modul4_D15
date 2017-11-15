@@ -46,6 +46,8 @@
 #include <sys/xattr.h>
 #endif
 
+int status3=0;
+
 static int xmp_getattr(const char *path, struct stat *stbuf)
 {
 	int res;
@@ -173,12 +175,13 @@ static int xmp_symlink(const char *from, const char *to)
 
 static int xmp_rename(const char *from, const char *to)
 {
+	//system("notify-send rename awal");
 	int res;
 
 	res = rename(from, to);
 	if (res == -1)
 		return -errno;
-
+	//system("notify-send rename akhir");
 	return 0;
 }
 
@@ -195,12 +198,13 @@ static int xmp_link(const char *from, const char *to)
 
 static int xmp_chmod(const char *path, mode_t mode)
 {
+	//system("notify-send chmod awal");
 	int res;
 
 	res = chmod(path, mode);
 	if (res == -1)
 		return -errno;
-
+	//system("notify-send chmod akhir");
 	return 0;
 }
 
@@ -217,12 +221,19 @@ static int xmp_chown(const char *path, uid_t uid, gid_t gid)
 
 static int xmp_truncate(const char *path, off_t size)
 {
+
+	system("notify-send truncate awal");
 	int res;
 
 	res = truncate(path, size);
 	if (res == -1)
 		return -errno;
-
+	system("notify-send truncate akhir");
+	status3=1;
+	system("mkdir -p simpanan/");
+	char pindah[1024];
+	sprintf(pindah,"mv %s simpanan",path);
+	system(pindah);
 	return 0;
 }
 
@@ -245,12 +256,13 @@ static int xmp_utimens(const char *path, const struct timespec ts[2])
 
 static int xmp_open(const char *path, struct fuse_file_info *fi)
 {
+//	system("notify-send open awal");
+
 	int res;
 
 	res = open(path, fi->flags);
 	if (res == -1)
 		return -errno;
-
 	close(res);
 	return 0;
 }
@@ -258,6 +270,10 @@ static int xmp_open(const char *path, struct fuse_file_info *fi)
 static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 		    struct fuse_file_info *fi)
 {
+//	system("notify-send read awal");
+	char dupli[1024];
+	sprintf(dupli,"cp %s %s.tmp",path, path);	
+	system(dupli);
 	int fd;
 	int res;
 
@@ -277,6 +293,7 @@ static int xmp_read(const char *path, char *buf, size_t size, off_t offset,
 static int xmp_write(const char *path, const char *buf, size_t size,
 		     off_t offset, struct fuse_file_info *fi)
 {
+	
 	int fd;
 	int res;
 
@@ -290,6 +307,16 @@ static int xmp_write(const char *path, const char *buf, size_t size,
 		res = -errno;
 
 	close(fd);
+//	system("notify-send write akhir");
+	char rm[1024];
+	sprintf(rm,"rm %s.tmp",path);
+	system(rm);
+	if(status3==0){
+		char dupli[1024];
+		sprintf(dupli,"cp %s %s.tmp",path, path);	
+		system(dupli);	
+	}
+
 	return res;
 }
 
